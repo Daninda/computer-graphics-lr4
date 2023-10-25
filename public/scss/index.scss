@@ -1,0 +1,13 @@
+.canvas{
+    border: 1px solid black;
+    margin: 10px;
+}
+.image {
+    margin: 10px;
+}
+
+.canvases {
+    display: flex;
+    justify-content: center; 
+    flex-wrap: wrap;
+}
