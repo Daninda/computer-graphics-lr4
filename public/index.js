@@ -1,6 +1,15 @@
 const width = 400;
 const height = 400;
 
+let numberLeft = 100;
+let numberRight = 200;
+
+const accept = document.getElementById('accept-button');
+const inputLeft = document.getElementById('left');
+const inputRight = document.getElementById('right');
+inputLeft.value = numberLeft;
+inputRight.value = numberRight;
+
 const canvases = document.getElementsByClassName('canvas');
 for (const i of canvases) {
     i.width = width;
@@ -14,21 +23,30 @@ const ctxImage_4 = canvases[3].getContext('2d');
 let image = new Image();
 image.src = 'img/jaguar.jpg';
 
+let imageData_2;
+
 image.onload = () => {
     ctxImage_1.drawImage(image, 0, 0, width, height);
 
-    let imageData_2 = ctxImage_1.getImageData(0, 0, width, height);
+    imageData_2 = ctxImage_1.getImageData(0, 0, width, height);
     toShadesOfGray(imageData_2);
     ctxImage_2.putImageData(imageData_2, 0, 0);
 
-    let imageData_3 = ctxImage_1.getImageData(0, 0, width, height);
-    toShadesOfGray(imageData_3);
+    let imageData_3 = ctxImage_2.getImageData(0, 0, width, height);
     luminanceСut(imageData_3, 100, 200);
     ctxImage_3.putImageData(imageData_3, 0, 0);
 
     let imageData_4 = ctxImage_2.getImageData(0, 0, width, height);
     contrast(imageData_4);
     ctxImage_4.putImageData(imageData_4, 0, 0);
+};
+
+accept.onclick = () => {
+    let imageData_3 = ctxImage_2.getImageData(0, 0, width, height);
+    numberLeft = +inputLeft.value;
+    numberRight = +inputRight.value;
+    luminanceСut(imageData_3, numberLeft, numberRight);
+    ctxImage_3.putImageData(imageData_3, 0, 0);
 }
 
 function toShadesOfGray(imageData) {
@@ -47,6 +65,7 @@ function toShadesOfGray(imageData) {
 }
 
 function luminanceСut(imageData, f1, f2) {
+    if (f1 > f2) return;
     let shade;
     for (let x = 0; x < imageData.width; x++) {
         for (let y = 0; y < imageData.height; y++) {
