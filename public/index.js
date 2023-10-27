@@ -19,9 +19,11 @@ const ctxImage_1 = canvases[0].getContext('2d');
 const ctxImage_2 = canvases[1].getContext('2d');
 const ctxImage_3 = canvases[2].getContext('2d');
 const ctxImage_4 = canvases[3].getContext('2d');
+const ctxImage_5 = canvases[4].getContext('2d');
 
 let image = new Image();
 image.src = 'img/jaguar.jpg';
+// image.src = 'img/papug.jpg';
 
 let imageData_2;
 
@@ -39,6 +41,10 @@ image.onload = () => {
     let imageData_4 = ctxImage_2.getImageData(0, 0, width, height);
     contrast(imageData_4);
     ctxImage_4.putImageData(imageData_4, 0, 0);
+
+    let imageData_5 = ctxImage_2.getImageData(0, 0, width, height);
+    heuristicAlgorithm(imageData_5, -90, 50);
+    ctxImage_5.putImageData(imageData_5, 0, 0);
 };
 
 accept.onclick = () => {
@@ -82,8 +88,6 @@ function luminanceСut(imageData, f1, f2) {
 function contrast(imageData) {
     let data_2 = _.clone(imageData.data);
     let imageData_2 = new ImageData(data_2, imageData.width, imageData.height);
-    console.log(imageData_2);
-    console.log(imageData);
     let a = 0;
     let b = 0.25;
     let mask = [[0, -1, 0],
@@ -109,6 +113,47 @@ function contrast(imageData) {
             imageData.data[y * (imageData.width * 4) + x * 4 + 2] = newShade;                    
         }
     }
+}
+
+function heuristicAlgorithm(imageData, f1, f2) {
+    let data_2 = _.clone(imageData.data);
+    let imageData_2 = new ImageData(data_2, imageData.width, imageData.height);
+    let d, D;
+    for (let x = 0; x < imageData.width; x++) {
+        for (let y = 0; y < imageData.height; y++) {
+            d = calcd(imageData_2, x, y);
+            D = calcD(imageData_2, x, y);
+            if (d <= f1 || D <= f2) {
+                imageData.data[y * (imageData.width * 4) + x * 4 + 0] = 255;
+                imageData.data[y * (imageData.width * 4) + x * 4 + 1] = 255;
+                imageData.data[y * (imageData.width * 4) + x * 4 + 2] = 255;
+            }
+        }
+    }
+}
+
+function calcd(imageData, x, y) {
+    let res = 0;
+    let shade;
+    shade = getPixel(imageData, x, y)[0];
+    for (let i = -1; i < 1; i++) {
+        for (let j = 1; j < 1; j++) {
+            res += getPixel(imageData, x + i, y + j)[0];
+        }
+    }  
+    return res - shade;
+}
+
+function calcD(imageData, x, y) {
+    let res = 0;
+    let d;
+    d = calcd(imageData, x, y);
+    for (let i = -1; i < 1; i++) {
+        for (let j = 1; j < 1; j++) {
+            res += calcd(imageData, x + i, y + j);
+        }
+    } 
+    return res - d;
 }
 
 function getPixel(imageData, x, y) {
