@@ -44,6 +44,7 @@ image.onload = () => {
 
     let imageData_5 = ctxImage_2.getImageData(0, 0, width, height);
     heuristicAlgorithm(imageData_5, -90, 50);
+    toblackwhite(imageData_5, 240);
     ctxImage_5.putImageData(imageData_5, 0, 0);
 };
 
@@ -85,6 +86,25 @@ function luminanceСut(imageData, f1, f2) {
     }
 }
 
+function toblackwhite(imageData, f0) {
+    let shade;
+    for (let x = 0; x < imageData.width; x++) {
+        for (let y = 0; y < imageData.height; y++) {
+            shade = imageData.data[y * (imageData.width * 4) + x * 4 + 0];
+            if (shade > f0) {
+                imageData.data[y * (imageData.width * 4) + x * 4 + 0] = 255;
+                imageData.data[y * (imageData.width * 4) + x * 4 + 1] = 255;
+                imageData.data[y * (imageData.width * 4) + x * 4 + 2] = 255;
+            }
+            else if (shade <= f0) {
+                imageData.data[y * (imageData.width * 4) + x * 4 + 0] = 0;
+                imageData.data[y * (imageData.width * 4) + x * 4 + 1] = 0;
+                imageData.data[y * (imageData.width * 4) + x * 4 + 2] = 0;
+            }
+        }
+    }
+}
+
 function contrast(imageData) {
     let data_2 = _.clone(imageData.data);
     let imageData_2 = new ImageData(data_2, imageData.width, imageData.height);
@@ -93,7 +113,7 @@ function contrast(imageData) {
     let mask = [[0, -1, 0],
                 [-1, 8, -1],
                 [0, -1, 0]];
-    let shade, newShade = 0;
+    let newShade = 0;
     let kx = 0, ky = 0;
     for (let x = 0; x < imageData_2.width; x++) {
         if (x == 0) kx = 1;
@@ -103,7 +123,6 @@ function contrast(imageData) {
             if (y == 0) ky = 1;
             else if (y == imageData_2.height - 1) ky = -1;
             else ky = 0;
-            shade = imageData_2.data[y * (imageData_2.width * 4) + x * 4 + 0];
             newShade = a + b * (getPixel(imageData_2, x-1+kx, y-1+ky)[0] * mask[0][0] + 
                                     getPixel(imageData_2, x, y-1+ky)[0] * mask[0][1] +
                                     getPixel(imageData_2, x+1+kx, y-1+ky)[0] * mask[0][2] +
