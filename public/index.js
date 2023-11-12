@@ -89,23 +89,30 @@ function contrast(imageData) {
     let data_2 = _.clone(imageData.data);
     let imageData_2 = new ImageData(data_2, imageData.width, imageData.height);
     let a = 0;
-    let b = 0.25;
+    let b = 1/4;
     let mask = [[0, -1, 0],
                 [-1, 8, -1],
                 [0, -1, 0]];
     let shade, newShade = 0;
+    let kx = 0, ky = 0;
     for (let x = 0; x < imageData_2.width; x++) {
+        if (x == 0) kx = 1;
+        else if (x == imageData_2.width - 1) kx = -1;
+        else kx = 0;
         for (let y = 0; y < imageData_2.height; y++) {
+            if (y == 0) ky = 1;
+            else if (y == imageData_2.height - 1) ky = -1;
+            else ky = 0;
             shade = imageData_2.data[y * (imageData_2.width * 4) + x * 4 + 0];
-            newShade = a + b * (getPixel(imageData_2, x-1, y-1)[0] * mask[0][0] + 
-                                    getPixel(imageData_2, x, y-1)[0] * mask[0][1] +
-                                    getPixel(imageData_2, x+1, y-1)[0] * mask[0][2] +
-                                    getPixel(imageData_2, x-1, y)[0] * mask[1][0] +
+            newShade = a + b * (getPixel(imageData_2, x-1+kx, y-1+ky)[0] * mask[0][0] + 
+                                    getPixel(imageData_2, x, y-1+ky)[0] * mask[0][1] +
+                                    getPixel(imageData_2, x+1+kx, y-1+ky)[0] * mask[0][2] +
+                                    getPixel(imageData_2, x-1+kx, y)[0] * mask[1][0] +
                                     getPixel(imageData_2, x, y)[0] * mask[1][1] +
-                                    getPixel(imageData_2, x+1, y)[0] * mask[1][2] +
-                                    getPixel(imageData_2, x-1, y+1)[0] * mask[2][0] +
-                                    getPixel(imageData_2, x, y+1)[0] * mask[2][1] +
-                                    getPixel(imageData_2, x+1, y+1)[0] * mask[2][2]);
+                                    getPixel(imageData_2, x+1+kx, y)[0] * mask[1][2] +
+                                    getPixel(imageData_2, x-1+kx, y+1+ky)[0] * mask[2][0] +
+                                    getPixel(imageData_2, x, y+1+ky)[0] * mask[2][1] +
+                                    getPixel(imageData_2, x+1+kx, y+1+ky)[0] * mask[2][2]);
             newShade = Math.round(newShade);
             
             imageData.data[y * (imageData.width * 4) + x * 4 + 0] = newShade;
