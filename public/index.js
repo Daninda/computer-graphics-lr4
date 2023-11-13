@@ -24,6 +24,8 @@ const ctxImage_5 = canvases[4].getContext('2d');
 let image = new Image();
 image.src = 'img/jaguar.jpg';
 // image.src = 'img/papug.jpg';
+// image.src = 'img/image001.jpg';
+// image.src = 'img/train.jpg';
 
 let imageData_2;
 
@@ -43,8 +45,8 @@ image.onload = () => {
     ctxImage_4.putImageData(imageData_4, 0, 0);
 
     let imageData_5 = ctxImage_2.getImageData(0, 0, width, height);
-    heuristicAlgorithm(imageData_5, -90, 50);
-    toblackwhite(imageData_5, 240);
+    toblackwhite(imageData_5, 50);
+    heuristicAlgorithm(imageData_5, 4, 3);
     ctxImage_5.putImageData(imageData_5, 0, 0);
 };
 
@@ -60,9 +62,8 @@ function toShadesOfGray(imageData) {
     let shade;
     for (let x = 0; x < imageData.width; x++) {
         for (let y = 0; y < imageData.height; y++) {
-            shade = imageData.data[y * (imageData.width * 4) + x * 4 + 0] * 0.299 + 
-                    imageData.data[y * (imageData.width * 4) + x * 4 + 1] * 0.587 + 
-                    imageData.data[y * (imageData.width * 4) + x * 4 + 2] * 0.114;
+            let pixel = getPixel(imageData, x, y);
+            shade = pixel[0] * 0.299 + pixel[1] * 0.587 + pixel[2] * 0.114;
             shade = Math.round(shade);
             imageData.data[y * (imageData.width * 4) + x * 4 + 0] = shade;
             imageData.data[y * (imageData.width * 4) + x * 4 + 1] = shade;
@@ -114,24 +115,22 @@ function contrast(imageData) {
                 [-1, 8, -1],
                 [0, -1, 0]];
     let newShade = 0;
-    let kx = 0, ky = 0;
+    let lx = 0, rx = 0, ly = 0, ry = 0;
     for (let x = 0; x < imageData_2.width; x++) {
-        if (x == 0) kx = 1;
-        else if (x == imageData_2.width - 1) kx = -1;
-        else kx = 0;
+        lx = x == 0;
+        rx = x == imageData_2.width - 1;
         for (let y = 0; y < imageData_2.height; y++) {
-            if (y == 0) ky = 1;
-            else if (y == imageData_2.height - 1) ky = -1;
-            else ky = 0;
-            newShade = a + b * (getPixel(imageData_2, x-1+kx, y-1+ky)[0] * mask[0][0] + 
-                                    getPixel(imageData_2, x, y-1+ky)[0] * mask[0][1] +
-                                    getPixel(imageData_2, x+1+kx, y-1+ky)[0] * mask[0][2] +
-                                    getPixel(imageData_2, x-1+kx, y)[0] * mask[1][0] +
+            ly = y == 0;
+            ry = y == imageData_2.height - 1;
+            newShade = a + b * (getPixel(imageData_2, x-1+lx, y-1+ly)[0] * mask[0][0] + 
+                                    getPixel(imageData_2, x, y-1+ly)[0] * mask[0][1] +
+                                    getPixel(imageData_2, x+1-rx, y-1+ly)[0] * mask[0][2] +
+                                    getPixel(imageData_2, x-1+lx, y)[0] * mask[1][0] +
                                     getPixel(imageData_2, x, y)[0] * mask[1][1] +
-                                    getPixel(imageData_2, x+1+kx, y)[0] * mask[1][2] +
-                                    getPixel(imageData_2, x-1+kx, y+1+ky)[0] * mask[2][0] +
-                                    getPixel(imageData_2, x, y+1+ky)[0] * mask[2][1] +
-                                    getPixel(imageData_2, x+1+kx, y+1+ky)[0] * mask[2][2]);
+                                    getPixel(imageData_2, x+1-rx, y)[0] * mask[1][2] +
+                                    getPixel(imageData_2, x-1+lx, y+1-ry)[0] * mask[2][0] +
+                                    getPixel(imageData_2, x, y+1-ry)[0] * mask[2][1] +
+                                    getPixel(imageData_2, x+1-rx, y+1-ry)[0] * mask[2][2]);
             newShade = Math.round(newShade);
             
             imageData.data[y * (imageData.width * 4) + x * 4 + 0] = newShade;
@@ -161,10 +160,15 @@ function heuristicAlgorithm(imageData, f1, f2) {
 function calcd(imageData, x, y) {
     let res = 0;
     let shade;
-    shade = getPixel(imageData, x, y)[0];
-    for (let i = -1; i < 1; i++) {
-        for (let j = 1; j < 1; j++) {
-            res += getPixel(imageData, x + i, y + j)[0];
+    shade = getPixel(imageData, x, y)[0] / 255;
+    let lx = 0, rx = 0, ly = 0, ry = 0;
+    lx = x == 0;
+    rx = x == imageData.width - 1;
+    ly = y == 0;
+    ry = y == imageData.height - 1;
+    for (let i = -1 + lx; i <= 1 - rx; i++) {
+        for (let j = -1 + ly; j <= 1 - ry; j++) {
+            res += getPixel(imageData, x + i, y + j)[0] / 255;
         }
     }  
     return res - shade;
@@ -174,8 +178,13 @@ function calcD(imageData, x, y) {
     let res = 0;
     let d;
     d = calcd(imageData, x, y);
-    for (let i = -1; i < 1; i++) {
-        for (let j = 1; j < 1; j++) {
+    let lx = 0, rx = 0, ly = 0, ry = 0;
+    lx = x == 0;
+    rx = x == imageData.width - 1;
+    ly = y == 0;
+    ry = y == imageData.height - 1;
+    for (let i = -1 + lx; i <= 1 - rx; i++) {
+        for (let j = -1 + ly; j <= 1 - ry; j++) {
             res += calcd(imageData, x + i, y + j);
         }
     } 
